@@ -3,10 +3,16 @@ import { Link } from "react-router-dom";
 
 export default function Home() {
   return (
-    <div>
-      <div className="bg-light p-4 d-inline">
-        <Link to="/room/join" className="text-decoration-none fs-5">
+    <div className="d-flex justify-content-center mt-4">
+      <div className="bg-light p-4 d-inline m-2">
+        <Link to="/room/join" className="text-decoration-none fs-4">
           Join Room
+        </Link>
+      </div>
+
+      <div className="bg-light p-4 d-inline m-2">
+        <Link to="/login" className="text-decoration-none fs-4">
+          Join Chat
         </Link>
       </div>
     </div>
