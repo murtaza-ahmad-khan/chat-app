@@ -22,7 +22,7 @@ export default function Register({ history }) {
     }
   };
   return (
-    <div className="container">
+    <div className="containerC-sm">
       <h2 className="mt-4 mb-4">Sign up</h2>
       <form onSubmit={submitHandler}>
         <input
