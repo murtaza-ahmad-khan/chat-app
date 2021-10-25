@@ -3,7 +3,7 @@ const bcrypt = require("bcrypt");
 
 const sequelize = require("../uitls/sequelize");
 
-module.exports = sequelize.define(
+const User = sequelize.define(
   "User",
   {
     name: {
@@ -27,6 +27,16 @@ module.exports = sequelize.define(
     },
   }
 );
+
+User.associations = (models) => {
+  User.belongsToMany(models.Chat, {
+    through: "ChatUser",
+    foreignKey: "userId",
+  });
+  User.hasMany(models.ChatUser, { foreignKey: "userId" });
+};
+
+module.exports = User;
 
 // Hash password before saving in database
 async function hashPassword(user) {
