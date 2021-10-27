@@ -1,20 +1,49 @@
 const { Server } = require("socket.io");
 
+const Message = require("../models").Message;
+
+const users = new Map();
+
 module.exports = function (server) {
   const io = new Server(server, { cors: { origin: "*" } });
 
-  // Individual Chatting
-
-  // Middleware which checks the username for every request
-  io.of("/chat").use((socket, next) => {
-    const username = socket.handshake.auth.username;
-    if (!username) {
-      return next(new Error("invalid username"));
-    }
-    socket.username = username;
+  // Middleware
+  io.of("/").use((socket, next) => {
     next();
   });
 
+  io.on("connection", (socket) => {
+    socket.on("join", (user) => {
+      const userWithSocket = { ...user };
+      userWithSocket.socketId = socket.id;
+      users.set(user.id, userWithSocket);
+    });
+
+    socket.on("message", async (message) => {
+      const senderSocketId = users.get(message.senderId)?.socketId;
+      const receiverSocketId = users.get(message.receiverId)?.socketId;
+
+      const m = {
+        message: message.message,
+        chatId: message.chatId,
+        senderId: message.senderId,
+        receiverId: message.receiverId,
+      };
+      // Save message in database
+      const savedMessage = await Message.create(m);
+
+      io.to([senderSocketId, receiverSocketId]).emit("message", {
+        ...message,
+        id: savedMessage.id,
+      });
+    });
+
+    socket.on("leave", (user) => {
+      users.delete(user.id);
+    });
+  });
+
+  /*
   io.of("/chat").on("connection", (socket) => {
     const auth = socket.handshake.auth;
     socket.join(auth.userId.toString());
@@ -63,4 +92,6 @@ module.exports = function (server) {
       }
     });
   });
+
+  */
 };

@@ -1,46 +1,47 @@
-const { DataTypes } = require("sequelize");
+"use strict";
 const bcrypt = require("bcrypt");
+const { Model } = require("sequelize");
 
-const sequelize = require("../uitls/sequelize");
-
-const User = sequelize.define(
-  "User",
-  {
-    name: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    username: {
-      type: DataTypes.STRING,
-      unique: true,
-      allowNull: false,
-    },
-    password: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-  },
-  {
-    hooks: {
-      beforeCreate: hashPassword,
-      beforeUpdate: hashPassword,
-    },
+module.exports = (sequelize, DataTypes) => {
+  class User extends Model {
+    /**
+     * Helper method for defining associations.
+     * This method is not a part of Sequelize lifecycle.
+     * The `models/index` file will call this method automatically.
+     */
+    static associate(models) {
+      // define association here
+      this.hasMany(models.Message, { foreignKey: "senderId", as: "sender" });
+      this.hasMany(models.Message, {
+        foreignKey: "receiverId",
+        as: "receiver",
+      });
+      this.hasMany(models.Chat, { foreignKey: "userId", as: "user" });
+      this.hasMany(models.Chat, { foreignKey: "partnerId", as: "partner" });
+    }
   }
-);
-
-User.associations = (models) => {
-  User.belongsToMany(models.Chat, {
-    through: "ChatUser",
-    foreignKey: "userId",
-  });
-  User.hasMany(models.ChatUser, { foreignKey: "userId" });
+  User.init(
+    {
+      name: DataTypes.STRING,
+      username: DataTypes.STRING,
+      password: DataTypes.STRING,
+    },
+    {
+      sequelize,
+      modelName: "User",
+      hooks: {
+        beforeCreate: hashPassword,
+        beforeUpdate: hashPassword,
+      },
+    }
+  );
+  return User;
 };
 
-module.exports = User;
-
-// Hash password before saving in database
-async function hashPassword(user) {
+const hashPassword = async (user) => {
   if (user.changed("password")) {
     user.password = await bcrypt.hash(user.password, 10);
   }
-}
+
+  return user;
+};
