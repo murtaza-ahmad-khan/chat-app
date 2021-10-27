@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 
-import { createUser } from "../api/users";
+import { signup } from "../api/auth";
 
 export default function Register({ history }) {
   const [name, setName] = useState("");
@@ -12,11 +12,9 @@ export default function Register({ history }) {
     e.preventDefault();
 
     try {
-      const { data } = await createUser({ name, username, password });
-      // Save user to local storage
-      const user = { id: data.id, username: data.username, name: data.name };
-      localStorage.setItem("user", JSON.stringify(user));
-      history.replace("/contacts");
+      await signup({ name, username, password });
+
+      history.push("/login");
     } catch (error) {
       console.log(error);
     }
